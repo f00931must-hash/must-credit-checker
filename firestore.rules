@@ -19,7 +19,7 @@ service cloud.firestore {
     match /curricula/{curriculumId} {
       allow read: if isAuthorized();
       allow create, update: if isAdmin();
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
     match /{document=**} {
       allow read, write: if false;
