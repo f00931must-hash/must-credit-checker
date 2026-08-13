@@ -3,7 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebas
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 const firebaseApp=initializeApp(firebaseConfig),auth=getAuth(firebaseApp),db=getFirestore(firebaseApp),provider=new GoogleAuthProvider();
-const targets={"校必修":30,"院必修":18,"專業必修":47,"專業選修":33},domains=["人文領域","藝術領域","社會領域","自然領域"];
+let targets={"校必修":30,"院必修":18,"專業必修":47,"專業選修":33},currentCurriculum=null,curricula=[];
+const domains=["人文領域","藝術領域","社會領域","自然領域"];
 const terms={"1-1":"一年級上學期","1-2":"一年級下學期","2-1":"二年級上學期","2-2":"二年級下學期","3-1":"三年級上學期","3-2":"三年級下學期","4-1":"四年級上學期","4-2":"四年級下學期"};
 let student={id:"B11500001",name:"王小明",department:"旅館管理與廚藝創意系",program:"日間部四技",admissionYear:"115",courses:[
  {id:"GE101",name:"分類通識-音樂好好聽(藝術領域)",credits:2,category:"校必修",subCategory:"分類通識",domain:"藝術領域",term:"1-1",status:"done"},
@@ -23,7 +24,8 @@ const views=[...document.querySelectorAll(".view")],recognized=()=>student.cours
 function show(id){views.forEach(v=>v.classList.toggle("hidden",v.id!==id));scrollTo({top:0,behavior:"smooth"})}
 document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>show(b.dataset.back));
 studentEntry.onclick=()=>show("queryView");teacherEntry.onclick=loginAndOpenTeacher;
-addStudentBtn.onclick=()=>studentDialog.showModal();
+addStudentBtn.onclick=async()=>{await loadCurricula();fillCurriculumSelect();if(!curricula.length){alert("請先建立至少一份時序表。");curriculumDialog.showModal();return}studentDialog.showModal()};
+curriculumBtn.onclick=async()=>{await loadCurricula();renderCurricula();curriculumDialog.showModal()};
 queryForm.onsubmit=e=>{e.preventDefault();const ok=queryName.value.trim()===demoStudent.name&&queryStudentId.value.trim().toUpperCase()===demoStudent.id;queryError.textContent=ok?"":"學生查詢尚未連接正式資料；示範請使用王小明／B11500001。";if(ok){student=structuredClone(demoStudent);openStudent("student")}};
 logoutBtn.onclick=async()=>{await signOut(auth);show("homeView")};
 
@@ -32,7 +34,7 @@ async function loginAndOpenTeacher(){
   const user=auth.currentUser||(await signInWithPopup(auth,provider)).user;
   const allowed=(await getDoc(doc(db,"authorizedUsers",user.email))).exists();
   if(!allowed){await signOut(auth);alert("此帳號尚未被加入老師／小幫手權限名單。");return}
-  show("teacherView");await loadMyStudents(user.email);
+  show("teacherView");await loadCurricula();await loadMyStudents(user.email);
  }catch(error){console.error(error);alert(error.code==="auth/popup-closed-by-user"?"已取消登入。":"登入或讀取資料失敗，請確認 Firebase 權限規則已發布。");}
 }
 async function loadMyStudents(email){
@@ -41,7 +43,7 @@ async function loadMyStudents(email){
  const rows=snapshot.docs.map(d=>({docId:d.id,...d.data()}));
  if(!rows.length){studentList.innerHTML='<div class="empty">目前尚未建立學生，請按右上角「新增學生」。</div>';return}
  studentList.innerHTML=rows.map((s,i)=>`<article class="student-row"><div><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.studentId)}｜${escapeHtml(s.department)}｜${escapeHtml(s.admissionYear)}學年度入學</p></div><button class="primary open-real" data-index="${i}">查看學分</button></article>`).join("");
- document.querySelectorAll(".open-real").forEach(b=>b.onclick=()=>{student=rows[Number(b.dataset.index)];student.id=student.studentId;student.courses=student.courses||[];openStudent("teacher")});
+ document.querySelectorAll(".open-real").forEach(b=>b.onclick=async()=>{student=rows[Number(b.dataset.index)];student.id=student.studentId;currentCurriculum=curricula.find(c=>c.docId===student.curriculumId)||null;if(currentCurriculum)targets=currentCurriculum.targets;student.courses=student.courses?.length?student.courses:structuredClone(currentCurriculum?.courses||[]);openStudent("teacher")});
 }
 function escapeHtml(value=""){return String(value).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
 
@@ -52,11 +54,17 @@ saveStudentBtn.onclick=async e=>{
  try{
   const ref=doc(db,"students",`${user.uid}_${id}`);
   if((await getDoc(ref)).exists()){studentFormError.textContent="這個學號已經建立。";return}
-  await setDoc(ref,{studentId:id,name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),ownerEmail:user.email,courses:[],createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  const curriculum=curricula.find(c=>c.docId===curriculumSelect.value);if(!curriculum){studentFormError.textContent="請選擇適用時序表。";return}
+  await setDoc(ref,{studentId:id,name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,ownerEmail:user.email,courses:structuredClone(curriculum.courses||[]),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
   studentDialog.close();studentForm.reset();programInput.value="日間部四技";await loadMyStudents(user.email);
  }catch(error){console.error(error);studentFormError.textContent="新增失敗，請先發布最新版 Firestore 規則。"}
 };
 onAuthStateChanged(auth,user=>{logoutBtn.classList.toggle("hidden",!user);systemBadge.textContent=user?`已登入：${user.email}`:"Firebase測試版"});
+
+async function loadCurricula(){const snap=await getDocs(collection(db,"curricula"));curricula=snap.docs.map(d=>({docId:d.id,...d.data()})).sort((a,b)=>String(b.admissionYear).localeCompare(String(a.admissionYear)))}
+function fillCurriculumSelect(){curriculumSelect.innerHTML='<option value="">請選擇時序表</option>'+curricula.map(c=>`<option value="${c.docId}">${escapeHtml(c.admissionYear)}｜${escapeHtml(c.department)}｜${escapeHtml(c.program)}</option>`).join("")}
+function renderCurricula(){curriculumList.innerHTML=curricula.length?curricula.map(c=>`<div class="curriculum-row"><div><strong>${escapeHtml(c.admissionYear)}學年度｜${escapeHtml(c.department)}｜${escapeHtml(c.program)}</strong><span>校必修${c.targets?.校必修||0}・院必修${c.targets?.院必修||0}・專業必修${c.targets?.專業必修||0}・專業選修${c.targets?.專業選修||0}</span></div><span>${c.totalCredits||Object.values(c.targets||{}).reduce((a,b)=>a+b,0)}學分</span></div>`).join(""):'<div class="empty">尚未建立時序表。</div>'}
+saveCurriculumBtn.onclick=async e=>{e.preventDefault();curriculumError.textContent="";try{const year=curriculumYear.value.trim(),department=curriculumDepartment.value.trim(),program=curriculumProgram.value.trim();if(!year||!department||!program){curriculumError.textContent="請完整填寫版本資料。";return}const duplicate=curricula.some(c=>c.admissionYear===year&&c.department===department&&c.program===program);if(duplicate){curriculumError.textContent="相同入學年度、科系與學制的時序表已存在。";return}const curriculumTargets={"校必修":Number(schoolRequiredInput.value),"院必修":Number(collegeRequiredInput.value),"專業必修":Number(majorRequiredInput.value),"專業選修":Number(majorElectiveInput.value)},id=`${year}_${Date.now()}`;await setDoc(doc(db,"curricula",id),{admissionYear:year,department,program,totalCredits:Number(totalCreditsInput.value),targets:curriculumTargets,courses:structuredClone(demoStudent.courses),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});await loadCurricula();renderCurricula();fillCurriculumSelect()}catch(error){console.error(error);curriculumError.textContent="建立失敗：只有管理者可以建立時序表，並請確認規則已發布。"}};
 function openStudent(r){role=r;tab="timeline";document.querySelectorAll(".teacher-only").forEach(e=>e.classList.toggle("hidden",r!=="teacher"));document.querySelectorAll(".tab").forEach(e=>e.classList.toggle("active",e.dataset.tab==="timeline"));termFilter.value="all";detailBack.onclick=()=>show(r==="teacher"?"teacherView":"queryView");render();show("detailView")}
 function totals(){const out=Object.fromEntries(Object.keys(targets).map(k=>[k,0]));let ext=0;recognized().forEach(c=>{let value=c.credits;if(c.external){value=Math.max(0,Math.min(value,12-ext));ext+=value}if(c.category in out)out[c.category]+=value});return out}
 function render(){const t=totals(),sum=Object.values(t).reduce((a,b)=>a+b,0);studentHeader.innerHTML=`<div><h2>${student.name}</h2><p>${student.id}｜${student.department}｜${student.program}｜${student.admissionYear}學年度入學</p></div><div class="progress-total"><span>目前已取得</span><strong>${sum} 學分</strong></div>`;creditSummary.innerHTML=Object.entries(targets).map(([n,max])=>`<article class="credit-card"><h3>${n}</h3><div class="credit-numbers"><strong>${t[n]}</strong><span>／${max} 學分</span></div><div class="meter"><span style="width:${Math.min(100,t[n]/max*100)}%"></span></div></article>`).join("");renderGeneral();renderExternal();renderCourses()}

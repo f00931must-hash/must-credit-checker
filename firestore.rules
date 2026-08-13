@@ -16,6 +16,11 @@ service cloud.firestore {
       allow read, delete: if owns(resource.data);
       allow update: if owns(resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail;
     }
+    match /curricula/{curriculumId} {
+      allow read: if isAuthorized();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+    }
     match /{document=**} {
       allow read, write: if false;
     }

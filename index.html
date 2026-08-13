@@ -58,7 +58,7 @@
       <button class="back-button" data-back="homeView">← 返回首頁</button>
       <div class="section-heading">
         <div><p class="eyebrow">老師／小幫手後台</p><h2>我的學生</h2></div>
-        <button class="primary" id="addStudentBtn">＋ 新增學生</button>
+        <div class="button-group"><button id="curriculumBtn">時序表管理</button><button class="primary" id="addStudentBtn">＋ 新增學生</button></div>
       </div>
       <div class="notice" id="teacherNotice">登入後只會載入目前帳號負責的學生。</div>
       <div class="student-list" id="studentList"></div>
@@ -122,8 +122,32 @@
       <label>入學年度<input id="admissionYearInput" required placeholder="例如：115"></label>
       <label>科系<input id="departmentInput" required></label>
       <label>學制<input id="programInput" value="日間部四技"></label>
+      <label>適用時序表<select id="curriculumSelect" required><option value="">請先選擇時序表</option></select></label>
       <p class="form-error" id="studentFormError"></p>
       <menu><button value="cancel">取消</button><button class="primary" id="saveStudentBtn" value="default">新增學生</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="curriculumDialog" class="wide-dialog">
+    <form method="dialog" id="curriculumForm">
+      <div class="dialog-heading"><div><h3>時序表管理</h3><p class="hint-left">每個入學年度、科系及學制只需建立一次。</p></div><button value="cancel" aria-label="關閉">×</button></div>
+      <div id="curriculumList" class="curriculum-list"></div>
+      <div class="curriculum-create">
+        <h4>建立時序表版本</h4>
+        <div class="form-grid">
+          <label>入學年度<input id="curriculumYear" value="115" required></label>
+          <label>科系<input id="curriculumDepartment" value="旅館管理與廚藝創意系" required></label>
+          <label>學制<input id="curriculumProgram" value="日間部四技" required></label>
+          <label>畢業總學分<input id="totalCreditsInput" type="number" value="128" min="1" required></label>
+          <label>校必修<input id="schoolRequiredInput" type="number" value="30" min="0" required></label>
+          <label>院必修<input id="collegeRequiredInput" type="number" value="18" min="0" required></label>
+          <label>專業必修<input id="majorRequiredInput" type="number" value="47" min="0" required></label>
+          <label>專業選修<input id="majorElectiveInput" type="number" value="33" min="0" required></label>
+        </div>
+        <p class="hint-left">第一份「115旅廚系日間部四技」會套用目前示範課程；之後再加入PDF／Excel批次解析。</p>
+        <p class="form-error" id="curriculumError"></p>
+        <button class="primary" id="saveCurriculumBtn" value="default">建立時序表</button>
+      </div>
     </form>
   </dialog>
 
