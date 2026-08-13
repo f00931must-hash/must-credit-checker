@@ -68,6 +68,8 @@
       <button class="back-button" id="detailBack">← 返回</button>
       <div id="studentHeader" class="student-header card"></div>
       <div id="creditSummary" class="credit-grid"></div>
+      <div id="generalEducationSummary"></div>
+      <div id="externalSummary"></div>
 
       <div class="toolbar card">
         <div class="tabs" id="detailTabs">
@@ -103,9 +105,10 @@
       </label>
       <label>學分類別
         <select id="classificationCategory">
-          <option>校必修</option><option>院必修</option><option>專業必修</option><option>專業選修</option><option>分類通識</option>
+          <option>校必修</option><option>院必修</option><option>專業必修</option><option>專業選修</option>
         </select>
       </label>
+      <label class="check-label"><input type="checkbox" id="classificationExternal"> 此課程為外系課程（最多認列12學分）</label>
       <label>備註<textarea id="classificationNote" placeholder="例如：系上確認可認列為專業選修"></textarea></label>
       <menu><button value="cancel">取消</button><button class="primary" value="default" id="saveClassification">儲存認列</button></menu>
     </form>
