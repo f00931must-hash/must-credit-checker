@@ -65,7 +65,7 @@
     </section>
 
     <section id="detailView" class="view hidden">
-      <button class="back-button" id="detailBack">← 返回</button>
+      <div class="detail-actions"><button class="back-button" id="detailBack">← 返回</button><button class="primary teacher-only" id="importTranscriptBtn">AI匯入歷史成績</button></div>
       <div id="studentHeader" class="student-header card"></div>
       <div id="creditSummary" class="credit-grid"></div>
       <div id="generalEducationSummary"></div>
@@ -116,7 +116,7 @@
 
   <dialog id="studentDialog">
     <form method="dialog" id="studentForm">
-      <div class="dialog-heading"><h3>新增學生</h3><button value="cancel" aria-label="關閉">×</button></div>
+      <div class="dialog-heading"><h3 id="studentDialogTitle">新增學生</h3><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
       <label>姓名<input id="studentNameInput" required></label>
       <label>學號<input id="studentIdInput" required></label>
       <label>入學年度<input id="admissionYearInput" required placeholder="例如：115"></label>
@@ -124,13 +124,13 @@
       <label>學制<input id="programInput" value="日間部四技"></label>
       <label>適用時序表<select id="curriculumSelect" required><option value="">請先選擇時序表</option></select></label>
       <p class="form-error" id="studentFormError"></p>
-      <menu><button value="cancel">取消</button><button class="primary" id="saveStudentBtn" value="default">新增學生</button></menu>
+      <menu><button value="cancel" formnovalidate>取消</button><button class="primary" id="saveStudentBtn" value="default">新增學生</button></menu>
     </form>
   </dialog>
 
   <dialog id="curriculumDialog" class="wide-dialog">
     <form method="dialog" id="curriculumForm">
-      <div class="dialog-heading"><div><h3>時序表管理</h3><p class="hint-left">每個入學年度、科系及學制只需建立一次。</p></div><button value="cancel" aria-label="關閉">×</button></div>
+      <div class="dialog-heading"><div><h3>時序表管理</h3><p class="hint-left">每個入學年度、科系及學制只需建立一次。</p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
       <div id="curriculumList" class="curriculum-list"></div>
       <div class="curriculum-create">
         <h4>建立時序表版本</h4>
@@ -159,7 +159,7 @@
       <label>課程資料<textarea id="courseImportText" class="course-import" placeholder="1-1｜校必修｜分類通識-課名(領域)｜2&#10;1-1｜專業必修｜旅館事業概論｜2"></textarea></label>
       <p class="hint-left">類別限：校必修、院必修、專業必修、專業選修。</p>
       <p class="form-error" id="courseEditorError"></p>
-      <menu><button value="cancel">稍後處理</button><button type="button" id="aiParseBtn">AI自動辨識</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
+      <menu><button value="cancel" formnovalidate>稍後處理</button><button type="button" id="aiParseBtn">AI自動辨識</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
     </form>
   </dialog>
 
