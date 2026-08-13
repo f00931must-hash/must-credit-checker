@@ -144,10 +144,22 @@
           <label>專業必修<input id="majorRequiredInput" type="number" value="47" min="0" required></label>
           <label>專業選修<input id="majorElectiveInput" type="number" value="33" min="0" required></label>
         </div>
-        <p class="hint-left">第一份「115旅廚系日間部四技」會套用目前示範課程；之後再加入PDF／Excel批次解析。</p>
+        <label>上傳時序表PDF<input id="curriculumPdfInput" type="file" accept="application/pdf" required></label>
+        <p class="hint-left">掃描型PDF會先建立為「待辨識」，完成課程確認後才能提供學生使用。</p>
         <p class="form-error" id="curriculumError"></p>
-        <button class="primary" id="saveCurriculumBtn" value="default">建立時序表</button>
+        <button class="primary" id="saveCurriculumBtn" value="default">上傳並建立待辨識版本</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="courseEditorDialog" class="wide-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div><h3>課程辨識與確認</h3><p class="hint-left" id="courseEditorTitle"></p></div><button value="cancel" aria-label="關閉">×</button></div>
+      <div class="notice">AI辨識接上前，可先用下列格式貼入課程；每行一門：學期｜類別｜課名｜學分。學期請填1-1至4-2。</div>
+      <label>課程資料<textarea id="courseImportText" class="course-import" placeholder="1-1｜校必修｜分類通識-課名(領域)｜2&#10;1-1｜專業必修｜旅館事業概論｜2"></textarea></label>
+      <p class="hint-left">類別限：校必修、院必修、專業必修、專業選修。</p>
+      <p class="form-error" id="courseEditorError"></p>
+      <menu><button value="cancel">稍後處理</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
     </form>
   </dialog>
 

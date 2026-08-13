@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function email() { return request.auth.token.email; }
+    function authorized() { return signedIn() && firestore.exists(/databases/(default)/documents/authorizedUsers/$(email())); }
+    function admin() { return authorized() && firestore.get(/databases/(default)/documents/authorizedUsers/$(email())).data.role == 'admin'; }
+    match /curricula/{curriculumId}/{fileName} {
+      allow read: if authorized();
+      allow write: if admin() && request.resource.size < 15 * 1024 * 1024 && request.resource.contentType == 'application/pdf';
+    }
+  }
+}
