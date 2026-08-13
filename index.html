@@ -45,12 +45,12 @@
         <p class="eyebrow">學生查詢</p>
         <h2>查看我的學分進度</h2>
         <form id="queryForm" class="form-stack">
-          <label>姓名<input id="queryName" autocomplete="name" required placeholder="示範請輸入：王小明"></label>
-          <label>學號<input id="queryStudentId" required placeholder="示範請輸入：B11500001"></label>
+          <label>姓名<input id="queryName" autocomplete="name" required placeholder="示範請輸入：測試學生"></label>
+          <label>學號<input id="queryStudentId" required placeholder="示範請輸入：DEMO0001"></label>
           <p id="queryError" class="form-error" role="alert"></p>
           <button class="primary" type="submit">查詢學分</button>
         </form>
-        <p class="hint">示範資料：王小明／B11500001</p>
+        <p class="hint">示範資料：測試學生／DEMO0001</p>
       </div>
     </section>
 
@@ -159,7 +159,7 @@
       <label>課程資料<textarea id="courseImportText" class="course-import" placeholder="1-1｜校必修｜分類通識-課名(領域)｜2&#10;1-1｜專業必修｜旅館事業概論｜2"></textarea></label>
       <p class="hint-left">類別限：校必修、院必修、專業必修、專業選修。</p>
       <p class="form-error" id="courseEditorError"></p>
-      <menu><button value="cancel">稍後處理</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
+      <menu><button value="cancel">稍後處理</button><button type="button" id="aiParseBtn">AI自動辨識</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
     </form>
   </dialog>
 
