@@ -145,9 +145,9 @@
           <label>專業選修<input id="majorElectiveInput" type="number" value="33" min="0" required></label>
         </div>
         <label>上傳時序表PDF<input id="curriculumPdfInput" type="file" accept="application/pdf" required></label>
-        <p class="hint-left">掃描型PDF會先建立為「待辨識」，完成課程確認後才能提供學生使用。</p>
+        <p class="hint-left">PDF只在本機選取，不會上傳保存；系統只將確認後的課程資料存入Firestore。</p>
         <p class="form-error" id="curriculumError"></p>
-        <button class="primary" id="saveCurriculumBtn" value="default">上傳並建立待辨識版本</button>
+        <button class="primary" id="saveCurriculumBtn" value="default">選取PDF並建立待辨識版本</button>
       </div>
     </form>
   </dialog>
