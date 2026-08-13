@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 第一版尚未完成帳號與資料歸屬設定前，全面禁止前端讀寫。
+    // 請勿為了測試改成 allow read, write: if true。
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
