@@ -13,7 +13,7 @@
       <p class="eyebrow">明新科技大學｜資源教室</p>
       <h1>學分檢核系統</h1>
     </div>
-    <span class="demo-badge">第一版示範模式</span>
+    <div class="header-actions"><span class="demo-badge" id="systemBadge">Firebase測試版</span><button class="logout-button hidden" id="logoutBtn">登出</button></div>
   </header>
 
   <main class="page-shell">
@@ -60,7 +60,7 @@
         <div><p class="eyebrow">老師／小幫手後台</p><h2>我的學生</h2></div>
         <button class="primary" id="addStudentBtn">＋ 新增學生</button>
       </div>
-      <div class="notice">示範模式尚未連接真實資料。正式版登入後，只會載入目前帳號負責的學生。</div>
+      <div class="notice" id="teacherNotice">登入後只會載入目前帳號負責的學生。</div>
       <div class="student-list" id="studentList"></div>
     </section>
 
@@ -111,6 +111,19 @@
       <label class="check-label"><input type="checkbox" id="classificationExternal"> 此課程為外系課程（最多認列12學分）</label>
       <label>備註<textarea id="classificationNote" placeholder="例如：系上確認可認列為專業選修"></textarea></label>
       <menu><button value="cancel">取消</button><button class="primary" value="default" id="saveClassification">儲存認列</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="studentDialog">
+    <form method="dialog" id="studentForm">
+      <div class="dialog-heading"><h3>新增學生</h3><button value="cancel" aria-label="關閉">×</button></div>
+      <label>姓名<input id="studentNameInput" required></label>
+      <label>學號<input id="studentIdInput" required></label>
+      <label>入學年度<input id="admissionYearInput" required placeholder="例如：115"></label>
+      <label>科系<input id="departmentInput" required></label>
+      <label>學制<input id="programInput" value="日間部四技"></label>
+      <p class="form-error" id="studentFormError"></p>
+      <menu><button value="cancel">取消</button><button class="primary" id="saveStudentBtn" value="default">新增學生</button></menu>
     </form>
   </dialog>
 
