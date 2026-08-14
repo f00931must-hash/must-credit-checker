@@ -65,7 +65,7 @@
     </section>
 
     <section id="detailView" class="view hidden">
-      <div class="detail-actions"><button class="back-button" id="detailBack">← 返回</button><button class="primary teacher-only" id="importTranscriptBtn">AI匯入歷史成績</button></div>
+      <div class="detail-actions"><button class="back-button" id="detailBack">← 返回</button><button class="primary teacher-only" id="importTranscriptBtn">貼上歷史成績截圖</button></div>
       <div id="studentHeader" class="student-header card"></div>
       <div id="creditSummary" class="credit-grid"></div>
       <div id="generalEducationSummary"></div>
@@ -160,6 +160,19 @@
       <p class="hint-left">類別限：校必修、院必修、專業必修、專業選修。</p>
       <p class="form-error" id="courseEditorError"></p>
       <menu><button value="cancel" formnovalidate>稍後處理</button><button type="button" id="aiParseBtn">AI自動辨識</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="transcriptPasteDialog" class="wide-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div><h3>貼上歷史成績截圖</h3><p class="hint-left">截圖後直接按 Ctrl＋V，不需要另存圖片。</p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <div id="transcriptPasteZone" class="paste-zone" tabindex="0">
+        <strong>請在這裡貼上成績截圖</strong>
+        <span>先點一下此區域，再按 Ctrl＋V</span>
+        <img id="transcriptPreview" class="hidden" alt="歷史成績截圖預覽">
+      </div>
+      <p class="form-error" id="transcriptPasteError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button type="button" id="clearTranscriptImageBtn" disabled>清除重貼</button><button type="button" class="primary" id="analyzeTranscriptBtn" disabled>AI辨識成績</button></menu>
     </form>
   </dialog>
 
