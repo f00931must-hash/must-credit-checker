@@ -108,9 +108,16 @@
           <option>校必修</option><option>院必修</option><option>專業必修</option><option>專業選修</option>
         </select>
       </label>
+      <label id="classificationDomainLabel">分類通識領域
+        <select id="classificationDomain">
+          <option value="">不是分類通識</option>
+          <option>人文領域</option><option>藝術領域</option><option>社會領域</option><option>自然領域</option>
+        </select>
+        <small class="hint-left">若認列為分類通識，請指定領域；學分會併入校必修。</small>
+      </label>
       <label class="check-label"><input type="checkbox" id="classificationExternal"> 此課程為外系課程（最多認列12學分）</label>
       <label>備註<textarea id="classificationNote" placeholder="例如：系上確認可認列為專業選修"></textarea></label>
-      <menu><button value="cancel">取消</button><button class="primary" value="default" id="saveClassification">儲存認列</button></menu>
+      <menu><button value="cancel" formnovalidate>取消</button><button class="primary" value="default" id="saveClassification">儲存認列</button></menu>
     </form>
   </dialog>
 
