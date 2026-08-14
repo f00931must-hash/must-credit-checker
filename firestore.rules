@@ -22,9 +22,10 @@ service cloud.firestore {
       allow update: if owns(resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail;
     }
     match /curricula/{curriculumId} {
-      allow read: if isAuthorized();
-      allow create, update: if isAdmin();
-      allow delete: if isAdmin();
+      allow read: if isAdmin() || (isAuthorized() && resource.data.ownerEmail == workspaceOwnerEmail());
+      allow create: if isAuthorized() && request.resource.data.ownerEmail == workspaceOwnerEmail();
+      allow update: if isAdmin() || (owns(resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail);
+      allow delete: if owns(resource.data);
     }
     match /{document=**} {
       allow read, write: if false;

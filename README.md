@@ -29,6 +29,12 @@
 - 小幫手只能存取所屬老師 `ownerEmail` 工作區，可新增、修改及刪除學生資料。
 - `firestore-bootstrap.rules` 只供首次建立管理員；完成同步後必須立即改回正式 `firestore.rules`。
 
+## v1.2.0
+
+- 時序表依老師 `ownerEmail` 工作區分開，小幫手共用所屬老師的時序表。
+- 貼上成績前先指定年級／學期，只在該學期內比對同名課程。
+- 人工分類及查詢範圍增加大五至大八。
+
 ## 下一階段
 
 1. Firebase Authentication 老師 Google 登入

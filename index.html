@@ -84,6 +84,10 @@
             <option value="2-1">二年級上學期</option><option value="2-2">二年級下學期</option>
             <option value="3-1">三年級上學期</option><option value="3-2">三年級下學期</option>
             <option value="4-1">四年級上學期</option><option value="4-2">四年級下學期</option>
+            <option value="5-1">五年級上學期</option><option value="5-2">五年級下學期</option>
+            <option value="6-1">六年級上學期</option><option value="6-2">六年級下學期</option>
+            <option value="7-1">七年級上學期</option><option value="7-2">七年級下學期</option>
+            <option value="8-1">八年級上學期</option><option value="8-2">八年級下學期</option>
           </select>
         </label>
       </div>
@@ -118,6 +122,10 @@
           <option>人文領域</option><option>藝術領域</option><option>社會領域</option><option>自然領域</option>
         </select>
         <small class="hint-left">若認列為分類通識，請指定領域；學分會併入校必修。</small>
+      </label>
+      <label>歸屬年級／學期
+        <select id="classificationTerm"></select>
+        <small class="hint-left">延畢課程可手動放入大五至大八。</small>
       </label>
       <label class="check-label"><input type="checkbox" id="classificationExternal"> 此課程為外系課程（最多認列12學分）</label>
       <label>備註<textarea id="classificationNote" placeholder="例如：系上確認可認列為專業選修"></textarea></label>
@@ -177,6 +185,10 @@
   <dialog id="transcriptPasteDialog" class="wide-dialog">
     <form method="dialog">
       <div class="dialog-heading"><div><h3>貼上歷史成績截圖</h3><p class="hint-left">截圖後直接按 Ctrl＋V，不需要另存圖片。</p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <label>這張成績屬於哪個年級／學期？
+        <select id="transcriptTargetTerm" required></select>
+        <small class="hint-left">系統只會比對這個學期的時序表課程，避免英文、體育貼到其他學期。</small>
+      </label>
       <div id="transcriptPasteZone" class="paste-zone" tabindex="0">
         <strong>請在這裡貼上成績截圖</strong>
         <span>先點一下此區域，再按 Ctrl＋V</span>
@@ -187,6 +199,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="app.js?v=1.1.0"></script>
+  <script type="module" src="app.js?v=1.2.0"></script>
 </body>
 </html>
