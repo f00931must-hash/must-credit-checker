@@ -7,6 +7,9 @@ const AI_WORKER_URL="https://must-resource-ai.f00931-must.workers.dev";
 let targets={"校必修":30,"院必修":18,"專業必修":47,"專業選修":33},currentCurriculum=null,curricula=[];
 const domains=["人文領域","藝術領域","社會領域","自然領域"];
 const terms={"1-1":"一年級上學期","1-2":"一年級下學期","2-1":"二年級上學期","2-2":"二年級下學期","3-1":"三年級上學期","3-2":"三年級下學期","4-1":"四年級上學期","4-2":"四年級下學期"};
+let currentAccess=null;
+const normalizedEmail=value=>String(value||"").trim().toLowerCase();
+const workspaceOwnerEmail=()=>currentAccess?.role==="assistant"?normalizedEmail(currentAccess.ownerEmail):normalizedEmail(currentAccess?.email||auth.currentUser?.email);
 let student={id:"DEMO0001",name:"測試學生",department:"旅館管理與廚藝創意系",program:"日間部四技",admissionYear:"115",courses:[
  {id:"GE101",name:"分類通識-音樂好好聽(藝術領域)",credits:2,category:"校必修",subCategory:"分類通識",domain:"藝術領域",term:"1-1",status:"done"},
  {id:"PE101",name:"體育(一)",credits:2,category:"校必修",term:"1-1",status:"done"},{id:"CH101",name:"應用中文(一)",credits:2,category:"校必修",term:"1-1",status:"done"},
@@ -34,14 +37,14 @@ logoutBtn.onclick=async()=>{await signOut(auth);show("homeView")};
 async function loginAndOpenTeacher(){
  try{
   const user=auth.currentUser||(await signInWithPopup(auth,provider)).user;
-  const allowed=(await getDoc(doc(db,"authorizedUsers",user.email))).exists();
-  if(!allowed){await signOut(auth);alert("此帳號尚未被加入老師／小幫手權限名單。");return}
-  show("teacherView");await loadCurricula();await loadMyStudents(user.email);
+  const accessSnap=await getDoc(doc(db,"authorizedUsers",normalizedEmail(user.email)));
+  if(!accessSnap.exists()||accessSnap.data().enabled===false){await signOut(auth);alert("此帳號尚未被加入老師／小幫手權限名單。");return}
+  currentAccess=accessSnap.data();show("teacherView");await loadCurricula();await loadMyStudents();
  }catch(error){console.error(error);alert(error.code==="auth/popup-closed-by-user"?"已取消登入。":"登入或讀取資料失敗，請確認 Firebase 權限規則已發布。");}
 }
-async function loadMyStudents(email){
+async function loadMyStudents(){
  studentList.innerHTML='<div class="loading-row">正在載入學生資料…</div>';
- const snapshot=await getDocs(query(collection(db,"students"),where("ownerEmail","==",email)));
+ const snapshot=await getDocs(query(collection(db,"students"),where("ownerEmail","==",workspaceOwnerEmail())));
  const rows=snapshot.docs.map(d=>({docId:d.id,...d.data()}));
  if(!rows.length){studentList.innerHTML='<div class="empty">目前尚未建立學生，請按右上角「新增學生」。</div>';return}
  studentList.innerHTML=rows.map((s,i)=>`<article class="student-row"><div><h3>${escapeHtml(s.name)}</h3><p>${escapeHtml(s.studentId)}｜${escapeHtml(s.department)}｜${escapeHtml(s.admissionYear)}學年度入學</p></div><div class="student-row-actions"><button class="primary open-real" data-index="${i}">查看學分</button><button class="small-button edit-student" data-index="${i}">修改</button><button class="small-button danger delete-student" data-index="${i}">刪除</button></div></article>`).join("");
@@ -56,18 +59,19 @@ saveStudentBtn.onclick=async e=>{
  const user=auth.currentUser,id=studentIdInput.value.trim().toUpperCase();
  if(!user||!id){studentFormError.textContent="請完整填寫資料。";return}
  try{
-  const ref=editingStudent?doc(db,"students",editingStudent.docId):doc(db,"students",`${user.uid}_${id}`);
+  const ownerEmail=workspaceOwnerEmail(),workspaceId=ownerEmail.replace(/[^a-z0-9]/g,"_");
+  const ref=editingStudent?doc(db,"students",editingStudent.docId):doc(db,"students",`${workspaceId}_${id}`);
   if(!editingStudent&&(await getDoc(ref)).exists()){studentFormError.textContent="這個學號已經建立。";return}
   const curriculum=curricula.find(c=>c.docId===curriculumSelect.value);if(!curriculum){studentFormError.textContent="請選擇適用時序表。";return}
-  if(editingStudent){const changed=editingStudent.curriculumId!==curriculum.docId,oldCourses=editingStudent.courses||[],newCourses=changed?mergeCoursesForCurriculum(curriculum.courses||[],oldCourses):oldCourses;await updateDoc(ref,{name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,courses:newCourses,updatedAt:serverTimestamp()})}else await setDoc(ref,{studentId:id,name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,ownerEmail:user.email,courses:structuredClone(curriculum.courses||[]),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
-  studentDialog.close();studentForm.reset();programInput.value="日間部四技";await loadMyStudents(user.email);
+  if(editingStudent){const changed=editingStudent.curriculumId!==curriculum.docId,oldCourses=editingStudent.courses||[],newCourses=changed?mergeCoursesForCurriculum(curriculum.courses||[],oldCourses):oldCourses;await updateDoc(ref,{name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,courses:newCourses,lastEditorEmail:normalizedEmail(user.email),updatedAt:serverTimestamp()})}else await setDoc(ref,{studentId:id,name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,ownerEmail,courses:structuredClone(curriculum.courses||[]),createdByEmail:normalizedEmail(user.email),lastEditorEmail:normalizedEmail(user.email),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  studentDialog.close();studentForm.reset();programInput.value="日間部四技";await loadMyStudents();
  }catch(error){console.error(error);studentFormError.textContent="新增失敗，請先發布最新版 Firestore 規則。"}
 };
 function openStudentEditor(s){editingStudent=s;fillCurriculumSelect();studentDialogTitle.textContent="修改學生";saveStudentBtn.textContent="儲存修改";studentNameInput.value=s.name||"";studentIdInput.value=s.studentId||"";studentIdInput.disabled=true;admissionYearInput.value=s.admissionYear||"";departmentInput.value=s.department||"";programInput.value=s.program||"";curriculumSelect.value=s.curriculumId||"";studentDialog.showModal()}
-async function removeStudent(s){if(!confirm(`確定刪除學生「${s.name}（${s.studentId}）」？此操作會一併刪除其學分檢核資料。`))return;try{await deleteDoc(doc(db,"students",s.docId));await loadMyStudents(auth.currentUser.email)}catch(error){console.error(error);alert("刪除失敗，請確認權限。")}}
+async function removeStudent(s){if(!confirm(`確定刪除學生「${s.name}（${s.studentId}）」？此操作會一併刪除其學分檢核資料。`))return;try{await deleteDoc(doc(db,"students",s.docId));await loadMyStudents()}catch(error){console.error(error);alert("刪除失敗，請確認權限。")}}
 function normalizedName(name){return String(name||"").replace(/[\s　()（）ⅠⅡⅢⅣ一二三四]/g,"").toLowerCase()}
 function mergeCoursesForCurriculum(template,history){const remaining=[...history];const result=structuredClone(template).map(course=>{const i=remaining.findIndex(h=>normalizedName(h.name)===normalizedName(course.name));if(i<0)return course;const old=remaining.splice(i,1)[0];return{...course,status:old.status,attemptTerm:old.attemptTerm,recognitionType:old.recognitionType,adjusted:old.adjusted,note:old.note}});remaining.filter(c=>["done","classified","failed","unmatched"].includes(c.status)).forEach(c=>result.push({...c,status:c.status==="failed"?"failed":"unmatched",previousCategory:c.category,category:null,note:[c.note,"更換時序表後需重新確認"].filter(Boolean).join("；")}));return result}
-onAuthStateChanged(auth,user=>{logoutBtn.classList.toggle("hidden",!user);systemBadge.textContent=user?`已登入：${user.email}`:"Firebase測試版"});
+onAuthStateChanged(auth,user=>{if(!user)currentAccess=null;logoutBtn.classList.toggle("hidden",!user);systemBadge.textContent=user?`已登入：${user.email}`:"Firebase測試版"});
 
 async function loadCurricula(){const snap=await getDocs(collection(db,"curricula"));curricula=snap.docs.map(d=>({docId:d.id,...d.data()})).sort((a,b)=>String(b.admissionYear).localeCompare(String(a.admissionYear)))}
 function fillCurriculumSelect(){curriculumSelect.innerHTML='<option value="">請選擇時序表</option>'+curricula.filter(c=>c.status==="ready").map(c=>`<option value="${c.docId}">${escapeHtml(c.admissionYear)}｜${escapeHtml(c.department)}｜${escapeHtml(c.program)}</option>`).join("")}

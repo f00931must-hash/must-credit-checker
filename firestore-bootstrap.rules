@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function email() { return request.auth.token.email.lower(); }
+    function bootstrapAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/authorizedUsers/$(email()))
+        && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.role == 'admin';
+    }
+
+    // 僅供 Portal 第一次建立管理員。完成同步後立即改用 firestore.rules。
+    match /authorizedUsers/{userEmail} {
+      allow read: if bootstrapAdmin() || (signedIn() && userEmail == email());
+      allow create: if bootstrapAdmin() || (signedIn()
+        && userEmail == email()
+        && request.resource.data.role == 'admin'
+        && request.resource.data.email == email());
+      allow update, delete: if bootstrapAdmin();
+    }
+
+    // 初始化期間保留原本已授權帳號的學生資料隔離方式。
+    match /students/{studentId} {
+      allow read, write: if false;
+    }
+    match /curricula/{curriculumId} {
+      allow read, write: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

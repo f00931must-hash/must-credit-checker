@@ -1,18 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
-    function email() { return request.auth.token.email; }
-    function isAuthorized() { return signedIn() && exists(/databases/$(database)/documents/authorizedUsers/$(email())); }
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function email() { return request.auth.token.email.lower(); }
+    function isAuthorized() { return signedIn() && exists(/databases/$(database)/documents/authorizedUsers/$(email())) && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.enabled == true; }
+    function me() { return get(/databases/$(database)/documents/authorizedUsers/$(email())).data; }
     function isAdmin() { return isAuthorized() && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.role == 'admin'; }
-    function owns(data) { return isAdmin() || (isAuthorized() && data.ownerEmail == email()); }
+    function workspaceOwnerEmail() { return me().role == 'assistant' ? me().ownerEmail : email(); }
+    function owns(data) { return isAdmin() || (isAuthorized() && data.ownerEmail == workspaceOwnerEmail()); }
+    function ownerCanManageAssistant(data) { return isAuthorized() && me().role != 'assistant' && data.role == 'assistant' && data.ownerEmail == email(); }
 
     match /authorizedUsers/{userEmail} {
-      allow read: if isAdmin() || (signedIn() && userEmail == email());
-      allow write: if isAdmin();
+      allow read: if isAdmin() || (isAuthorized() && (userEmail == email() || resource.data.ownerEmail == email()));
+      allow create: if isAdmin() || ownerCanManageAssistant(request.resource.data);
+      allow update: if isAdmin() || (ownerCanManageAssistant(resource.data) && ownerCanManageAssistant(request.resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail);
+      allow delete: if isAdmin() || ownerCanManageAssistant(resource.data);
     }
     match /students/{studentId} {
-      allow create: if isAuthorized() && request.resource.data.ownerEmail == email();
+      allow create: if isAuthorized() && request.resource.data.ownerEmail == workspaceOwnerEmail();
       allow read, delete: if owns(resource.data);
       allow update: if owns(resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail;
     }
