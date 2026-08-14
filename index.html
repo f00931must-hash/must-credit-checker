@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="明新科技大學資源教室學分檢核系統">
   <title>學分檢核系統｜明新科技大學資源教室</title>
-  <link rel="stylesheet" href="styles.css?v=1.1.0">
+  <link rel="stylesheet" href="styles.css?v=1.3.0">
 </head>
 <body>
   <header class="topbar">
@@ -104,6 +104,7 @@
         <select id="classificationType">
           <option value="category">只認列學分類別</option>
           <option value="replacement">替代時序表內特定課程</option>
+          <option value="reset">取消認列／改回尚未修習</option>
           <option value="excluded">不列入畢業學分</option>
         </select>
       </label>
@@ -174,7 +175,11 @@
   <dialog id="courseEditorDialog" class="wide-dialog">
     <form method="dialog">
       <div class="dialog-heading"><div><h3>課程辨識與確認</h3><p class="hint-left" id="courseEditorTitle"></p></div><button value="cancel" aria-label="關閉">×</button></div>
-      <div class="notice">AI辨識接上前，可先用下列格式貼入課程；每行一門：學期｜類別｜課名｜學分。學期請填1-1至4-2。</div>
+      <div class="notice">也可直接用下列格式修改課程；每行一門：學期｜類別｜課名｜學分。學期可填1-1至8-2。</div>
+      <section id="curriculumPageSelection" class="page-selection hidden">
+        <div><strong>選擇要辨識的 PDF 頁面</strong><p class="hint-left">系統會預選可能包含中文課程表的頁面，請確認後再辨識。</p></div>
+        <div id="curriculumPageGrid" class="page-preview-grid"></div>
+      </section>
       <label>課程資料<textarea id="courseImportText" class="course-import" placeholder="1-1｜校必修｜分類通識-課名(領域)｜2&#10;1-1｜專業必修｜旅館事業概論｜2"></textarea></label>
       <p class="hint-left">類別限：校必修、院必修、專業必修、專業選修。</p>
       <p class="form-error" id="courseEditorError"></p>
@@ -199,6 +204,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="app.js?v=1.2.0"></script>
+  <script type="module" src="app.js?v=1.3.0"></script>
 </body>
 </html>
