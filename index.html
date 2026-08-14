@@ -117,6 +117,10 @@
           <option>校必修</option><option>院必修</option><option>專業必修</option><option>專業選修</option>
         </select>
       </label>
+      <label>認列學分
+        <input id="classificationCredits" type="number" min="0" max="9" step="0.5" required>
+        <small class="hint-left">可填0至9學分，以0.5學分為級距。</small>
+      </label>
       <label id="classificationDomainLabel">分類通識領域
         <select id="classificationDomain">
           <option value="">不是分類通識</option>
@@ -204,6 +208,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="app.js?v=1.3.3"></script>
+  <script type="module" src="app.js?v=1.4.0"></script>
 </body>
 </html>
