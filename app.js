@@ -13,7 +13,7 @@ transcriptTargetTerm.innerHTML='<option value="">請選擇年級／學期</optio
 classificationTerm.innerHTML=termOptions;
 let currentAccess=null;
 const normalizedEmail=value=>String(value||"").trim().toLowerCase();
-const workspaceOwnerEmail=()=>currentAccess?.role==="assistant"?normalizedEmail(currentAccess.ownerEmail):normalizedEmail(currentAccess?.email||auth.currentUser?.email);
+const workspaceOwnerEmail=()=>normalizedEmail(currentAccess?.ownerEmail||currentAccess?.email||auth.currentUser?.email);
 let student={id:"DEMO0001",name:"測試學生",department:"旅館管理與廚藝創意系",program:"日間部四技",admissionYear:"115",courses:[
  {id:"GE101",name:"分類通識-音樂好好聽(藝術領域)",credits:2,category:"校必修",subCategory:"分類通識",domain:"藝術領域",term:"1-1",status:"done"},
  {id:"PE101",name:"體育(一)",credits:2,category:"校必修",term:"1-1",status:"done"},{id:"CH101",name:"應用中文(一)",credits:2,category:"校必修",term:"1-1",status:"done"},
