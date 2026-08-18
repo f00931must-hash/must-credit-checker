@@ -66,7 +66,6 @@ saveStudentBtn.onclick=async e=>{
  try{
   const ownerEmail=workspaceOwnerEmail(),workspaceId=ownerEmail.replace(/[^a-z0-9]/g,"_");
   const ref=editingStudent?doc(db,"students",editingStudent.docId):doc(db,"students",`${workspaceId}_${id}`);
-  if(!editingStudent&&(await getDoc(ref)).exists()){studentFormError.textContent="這個學號已經建立。";return}
   const curriculum=curricula.find(c=>c.docId===curriculumSelect.value);if(!curriculum){studentFormError.textContent="請選擇適用時序表。";return}
   if(editingStudent){const changed=editingStudent.curriculumId!==curriculum.docId,oldCourses=editingStudent.courses||[],newCourses=changed?mergeCoursesForCurriculum(curriculum.courses||[],oldCourses):oldCourses;await updateDoc(ref,{name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,courses:newCourses,lastEditorEmail:normalizedEmail(user.email),updatedAt:serverTimestamp()})}else await setDoc(ref,{studentId:id,name:studentNameInput.value.trim(),admissionYear:admissionYearInput.value.trim(),department:departmentInput.value.trim(),program:programInput.value.trim(),curriculumId:curriculum.docId,ownerEmail,courses:structuredClone(curriculum.courses||[]),createdByEmail:normalizedEmail(user.email),lastEditorEmail:normalizedEmail(user.email),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
   studentDialog.close();studentForm.reset();programInput.value="日間部四技";await loadMyStudents();
