@@ -25,7 +25,10 @@ service cloud.firestore {
     match /students/{studentId} {
       allow create: if isAuthorized() && request.resource.data.ownerEmail == workspaceOwnerEmail();
       allow read, delete: if owns(resource.data);
-      allow update: if owns(resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail;
+      allow update: if owns(resource.data)
+        && request.resource.data.ownerEmail == resource.data.ownerEmail
+        && request.resource.data.studentId == resource.data.studentId
+        && request.resource.data.createdAt == resource.data.createdAt;
     }
     match /curricula/{curriculumId} {
       allow read: if isAdmin() || (isAuthorized() && resource.data.ownerEmail == workspaceOwnerEmail());
