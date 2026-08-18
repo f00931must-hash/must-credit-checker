@@ -6,7 +6,13 @@ service cloud.firestore {
     function isAuthorized() { return signedIn() && exists(/databases/$(database)/documents/authorizedUsers/$(email())) && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.enabled == true; }
     function me() { return get(/databases/$(database)/documents/authorizedUsers/$(email())).data; }
     function isAdmin() { return isAuthorized() && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.role == 'admin'; }
-    function workspaceOwnerEmail() { return me().role == 'assistant' ? me().ownerEmail : email(); }
+    // Portal-synced helpers always carry their teacher's ownerEmail. Use that
+    // ownership field directly instead of depending on a particular role label.
+    function workspaceOwnerEmail() {
+      return me().ownerEmail is string && me().ownerEmail != ''
+        ? me().ownerEmail.lower()
+        : email();
+    }
     function owns(data) { return isAdmin() || (isAuthorized() && data.ownerEmail == workspaceOwnerEmail()); }
     function ownerCanManageAssistant(data) { return isAuthorized() && me().role != 'assistant' && data.role == 'assistant' && data.ownerEmail == email(); }
 
