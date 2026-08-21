@@ -6,6 +6,12 @@ service cloud.firestore {
     function isAuthorized() { return signedIn() && exists(/databases/$(database)/documents/authorizedUsers/$(email())) && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.enabled == true; }
     function me() { return get(/databases/$(database)/documents/authorizedUsers/$(email())).data; }
     function isAdmin() { return isAuthorized() && get(/databases/$(database)/documents/authorizedUsers/$(email())).data.role == 'admin'; }
+    function isAssistant() {
+      return isAuthorized() && (
+        me().get('role', 'teacher') == 'assistant'
+        || (me().get('ownerEmail', email()) is string && me().get('ownerEmail', email()).lower() != email())
+      );
+    }
     // Portal-synced helpers always carry their teacher's ownerEmail. Use that
     // ownership field directly instead of depending on a particular role label.
     function workspaceOwnerEmail() {
@@ -15,20 +21,40 @@ service cloud.firestore {
     }
     function owns(data) { return isAdmin() || (isAuthorized() && data.ownerEmail == workspaceOwnerEmail()); }
     function ownerCanManageAssistant(data) { return isAuthorized() && me().role != 'assistant' && data.role == 'assistant' && data.ownerEmail == email(); }
+    function validTransferTarget(targetEmail) {
+      return targetEmail is string
+        && exists(/databases/$(database)/documents/authorizedUsers/$(targetEmail))
+        && get(/databases/$(database)/documents/authorizedUsers/$(targetEmail)).data.enabled == true
+        && get(/databases/$(database)/documents/authorizedUsers/$(targetEmail)).data.get('role', 'teacher') != 'assistant'
+        && get(/databases/$(database)/documents/authorizedUsers/$(targetEmail)).data.get('ownerEmail', targetEmail) == targetEmail;
+    }
 
     match /authorizedUsers/{userEmail} {
-      allow read: if isAdmin() || (isAuthorized() && (userEmail == email() || resource.data.ownerEmail == email()));
+      allow get: if isAdmin() || (isAuthorized() && (userEmail == email() || resource.data.ownerEmail == email()));
+      allow list: if isAuthorized()
+        && !isAssistant()
+        && resource.data.get('role', '') in ['teacher', 'admin'];
       allow create: if isAdmin() || ownerCanManageAssistant(request.resource.data);
       allow update: if isAdmin() || (ownerCanManageAssistant(resource.data) && ownerCanManageAssistant(request.resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail);
       allow delete: if isAdmin() || ownerCanManageAssistant(resource.data);
     }
     match /students/{studentId} {
-      allow create: if isAuthorized() && request.resource.data.ownerEmail == workspaceOwnerEmail();
+      allow create: if isAuthorized()
+        && request.resource.data.ownerEmail == workspaceOwnerEmail()
+        && (!isAssistant() || request.resource.data.get('creditHolding', false) == false);
       allow read, delete: if owns(resource.data);
-      allow update: if owns(resource.data)
+      allow update: if (owns(resource.data)
         && request.resource.data.ownerEmail == resource.data.ownerEmail
         && request.resource.data.studentId == resource.data.studentId
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (!isAssistant() || request.resource.data.get('creditHolding', false) == resource.data.get('creditHolding', false)))
+        || (isAuthorized()
+          && !isAssistant()
+          && resource.data.ownerEmail == workspaceOwnerEmail()
+          && request.resource.data.ownerEmail != resource.data.ownerEmail
+          && validTransferTarget(request.resource.data.ownerEmail)
+          && request.resource.data.studentId == resource.data.studentId
+          && request.resource.data.createdAt == resource.data.createdAt);
     }
     match /curricula/{curriculumId} {
       allow read: if isAdmin() || (isAuthorized() && resource.data.ownerEmail == workspaceOwnerEmail());
