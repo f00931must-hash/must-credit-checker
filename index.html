@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="明新科技大學資源教室學分檢核系統">
   <title>學分檢核系統｜明新科技大學資源教室</title>
-  <link rel="stylesheet" href="styles.css?v=1.5.0">
+  <link rel="stylesheet" href="styles.css?v=1.5.1">
 </head>
 <body>
   <header class="topbar">
@@ -20,37 +20,15 @@
     <section id="homeView" class="view">
       <div class="hero card">
         <div>
-          <p class="eyebrow">畢業學分，一眼看懂</p>
-          <h2>查詢已完成與尚未完成的學分</h2>
-          <p>系統只呈現學分與修課狀態，不顯示原始成績。</p>
+          <h2>學生學分檢核與修課管理</h2>
         </div>
-        <div class="role-grid">
-          <button class="role-card" id="studentEntry">
-            <span class="role-icon">學</span>
-            <strong>學生查詢</strong>
-            <small>使用姓名與學號</small>
-          </button>
+        <div class="role-grid teacher-entry-grid">
           <button class="role-card" id="teacherEntry">
             <span class="role-icon">師</span>
             <strong>老師／小幫手</strong>
             <small>進入管理與檢核</small>
           </button>
         </div>
-      </div>
-    </section>
-
-    <section id="queryView" class="view hidden">
-      <button class="back-button" data-back="homeView">← 返回首頁</button>
-      <div class="narrow card">
-        <p class="eyebrow">學生查詢</p>
-        <h2>查看我的學分進度</h2>
-        <form id="queryForm" class="form-stack">
-          <label>姓名<input id="queryName" autocomplete="name" required placeholder="示範請輸入：測試學生"></label>
-          <label>學號<input id="queryStudentId" required placeholder="示範請輸入：DEMO0001"></label>
-          <p id="queryError" class="form-error" role="alert"></p>
-          <button class="primary" type="submit">查詢學分</button>
-        </form>
-        <p class="hint">示範資料：測試學生／DEMO0001</p>
       </div>
     </section>
 
@@ -70,6 +48,13 @@
         </label>
         <label>入學學年度
           <select id="studentYearFilter"><option value="all">全部學年度</option></select>
+        </label>
+        <label>學生狀態
+          <select id="studentStateFilter">
+            <option value="active">目前學生</option>
+            <option value="holding">學分暫存區</option>
+            <option value="all">全部</option>
+          </select>
         </label>
         <label>排序
           <select id="studentSortSelect">
@@ -177,6 +162,28 @@
     </form>
   </dialog>
 
+  <dialog id="transferStudentDialog">
+    <form method="dialog" id="transferStudentForm">
+      <div class="dialog-heading"><h3>轉移學生／學分暫存</h3><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <p id="transferStudentName" class="dialog-student-name"></p>
+      <label>處理方式
+        <select id="transferMode">
+          <option value="teacher">轉給其他個管老師</option>
+          <option value="holding">放入學分暫存區</option>
+        </select>
+      </label>
+      <label id="transferTeacherLabel">接收老師
+        <select id="transferTeacherSelect"><option value="">正在載入老師名單…</option></select>
+        <small class="hint-left">正式轉移後，原老師將無法再查看這位學生。</small>
+      </label>
+      <label>轉移／暫存原因
+        <textarea id="transferReason" required placeholder="例如：學生轉入其他科系，由新個管老師接手"></textarea>
+      </label>
+      <p class="form-error" id="transferStudentError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button type="button" class="primary" id="confirmStudentTransfer">確認</button></menu>
+    </form>
+  </dialog>
+
   <dialog id="curriculumDialog" class="wide-dialog">
     <form method="dialog" id="curriculumForm">
       <div class="dialog-heading"><div><h3>時序表管理</h3><p class="hint-left">每個入學年度、科系及學制只需建立一次。</p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
@@ -235,6 +242,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script type="module" src="app.js?v=1.5.0.1"></script>
+  <script type="module" src="app.js?v=1.5.1"></script>
 </body>
 </html>
