@@ -31,9 +31,12 @@ service cloud.firestore {
 
     match /authorizedUsers/{userEmail} {
       allow get: if isAdmin() || (isAuthorized() && (userEmail == email() || resource.data.ownerEmail == email()));
-      allow list: if isAuthorized()
+      allow list: if isAdmin() || (isAuthorized()
         && !isAssistant()
-        && resource.data.get('role', '') in ['teacher', 'admin'];
+        && (
+          resource.data.get('role', '') in ['teacher', 'admin']
+          || resource.data.get('ownerEmail', '') == email()
+        ));
       allow create: if isAdmin() || ownerCanManageAssistant(request.resource.data);
       allow update: if isAdmin() || (ownerCanManageAssistant(resource.data) && ownerCanManageAssistant(request.resource.data) && request.resource.data.ownerEmail == resource.data.ownerEmail);
       allow delete: if isAdmin() || ownerCanManageAssistant(resource.data);
