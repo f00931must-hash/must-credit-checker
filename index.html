@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="明新科技大學資源教室學分檢核系統">
   <title>學分檢核系統｜明新科技大學資源教室</title>
-  <link rel="stylesheet" href="styles.css?v=1.5.2">
+  <link rel="stylesheet" href="styles.css?v=1.5.3">
 </head>
 <body>
   <header class="topbar">
@@ -192,20 +192,35 @@
       <div class="curriculum-create">
         <h4>建立時序表版本</h4>
         <div class="form-grid">
-          <label>入學年度<input id="curriculumYear" value="115" required></label>
-          <label>科系<input id="curriculumDepartment" value="旅館管理與廚藝創意系" required></label>
-          <label>學制<input id="curriculumProgram" value="日間部四技" required></label>
-          <label>畢業總學分<input id="totalCreditsInput" type="number" value="128" min="1" required></label>
-          <label>校必修<input id="schoolRequiredInput" type="number" value="30" min="0" required></label>
-          <label>院必修<input id="collegeRequiredInput" type="number" value="18" min="0" required></label>
-          <label>專業必修<input id="majorRequiredInput" type="number" value="47" min="0" required></label>
-          <label>專業選修<input id="majorElectiveInput" type="number" value="33" min="0" required></label>
+          <label>入學年度<input id="curriculumYear" placeholder="例如：115" required></label>
+          <label>科系<input id="curriculumDepartment" placeholder="請輸入科系全名" required></label>
+          <label>學制<input id="curriculumProgram" placeholder="例如：日間部四技" required></label>
+          <label>畢業總學分<input id="totalCreditsInput" type="number" placeholder="請輸入" min="1" required></label>
+          <label>校必修<input id="schoolRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
+          <label>院必修<input id="collegeRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
+          <label>專業必修<input id="majorRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
+          <label>專業選修<input id="majorElectiveInput" type="number" placeholder="請輸入" min="0" required></label>
         </div>
         <label>上傳時序表PDF<input id="curriculumPdfInput" type="file" accept="application/pdf" required></label>
         <p class="hint-left">PDF只在本機選取，不會上傳保存；系統只將確認後的課程資料存入Firestore。</p>
         <p class="form-error" id="curriculumError"></p>
         <button class="primary" id="saveCurriculumBtn" value="default">選取PDF並建立待辨識版本</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="curriculumCreditsDialog">
+    <form method="dialog" id="curriculumCreditsForm">
+      <div class="dialog-heading"><div><h3>修改學分設定</h3><p class="hint-left" id="curriculumCreditsTitle"></p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <div class="credit-setting-summary" id="curriculumCreditsUsage"></div>
+      <label>畢業總學分<input id="editTotalCredits" type="number" min="1" required></label>
+      <label>校必修<input id="editSchoolRequired" type="number" min="0" required></label>
+      <label>院必修<input id="editCollegeRequired" type="number" min="0" required></label>
+      <label>專業必修<input id="editMajorRequired" type="number" min="0" required></label>
+      <label>專業選修<input id="editMajorElective" type="number" min="0" required></label>
+      <p class="hint-left">修改後會更新此時序表的學分門檻，不會改動學生的修課狀態或人工認列紀錄。</p>
+      <p class="form-error" id="curriculumCreditsError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button type="button" class="primary" id="saveCurriculumCredits">儲存學分設定</button></menu>
     </form>
   </dialog>
 
@@ -243,6 +258,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script type="module" src="app.js?v=1.5.2"></script>
+  <script type="module" src="app.js?v=1.5.3"></script>
 </body>
 </html>
