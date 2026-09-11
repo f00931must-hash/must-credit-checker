@@ -104,7 +104,8 @@ async function parseTranscript(file){analyzeTranscriptBtn.disabled=true;analyzeT
 function courseSequenceTokens(name){const numberMap={一:"1",二:"2",三:"3",四:"4",五:"5",六:"6",Ⅰ:"1",Ⅱ:"2",Ⅲ:"3",Ⅳ:"4",Ⅴ:"5",Ⅵ:"6"};return[...String(name||"").matchAll(/[（(]([一二三四五六1-6ⅠⅡⅢⅣⅤⅥ])[）)]/g)].map(match=>numberMap[match[1]]||match[1])}
 function compatibleCourseSequence(a,b){const left=courseSequenceTokens(a),right=courseSequenceTokens(b);return!left.length&&!right.length||left.length===right.length&&left.every((value,index)=>value===right[index])}
 function sameCourseName(a,b){if(normalizedName(a)===normalizedName(b))return true;if(!compatibleCourseSequence(a,b))return false;const left=coreCourseName(a),right=coreCourseName(b);return left===right||left.includes(right)||right.includes(left)}
-function transcriptMatchIndex(itemName,targetTerm){const candidates=student.courses.map((course,index)=>({course,index})).filter(x=>x.course.term===targetTerm);const exact=candidates.find(x=>normalizedName(x.course.name)===normalizedName(itemName));if(exact)return exact.index;const similar=candidates.filter(x=>sameCourseName(x.course.name,itemName));return similar.length===1?similar[0].index:-1}
+function isGeneralEducationCourse(course){return course?.subCategory==="分類通識"||String(course?.name||"").includes("分類通識")}
+function transcriptMatchIndex(itemName,targetTerm){if(String(itemName||"").includes("分類通識"))return-1;const candidates=student.courses.map((course,index)=>({course,index})).filter(x=>x.course.term===targetTerm&&!isGeneralEducationCourse(x.course));const exact=candidates.find(x=>normalizedName(x.course.name)===normalizedName(itemName));if(exact)return exact.index;const similar=candidates.filter(x=>sameCourseName(x.course.name,itemName));return similar.length===1?similar[0].index:-1}
 function previousFailedCourse(itemName,targetTerm){return student.courses.find(course=>course.term!==targetTerm&&course.status==="failed"&&sameCourseName(course.name,itemName))||null}
 function applyTranscript(data,targetTerm,batchId){
  const changes=[],recorded=new Set();
@@ -120,7 +121,7 @@ function applyTranscript(data,targetTerm,batchId){
     delete student.courses[index].needsReview;
    }
   }else{
-   const id=`H${Date.now()}${Math.random()}`,previousFailed=previousFailedCourse(item.name,targetTerm),note=item.needsReview?"成績狀態無法自動判定，請人工確認":item.external?"成績資料標示外系":previousFailed?`重修課程：原課程於${terms[previousFailed.term]||previousFailed.term}未通過，請人工認列`:`${terms[targetTerm]}的時序表內找不到此課程`;changes.push({id,before:null});student.courses.push({id,name:item.name,credits:item.credits,term:targetTerm,category:null,status:"unmatched",passed:item.passed,attemptTerm,external:!!item.external,needsReview:!!item.needsReview,transcriptBatchId:batchId,...(previousFailed?{retakeOf:previousFailed.id}:{}),note});
+   const id=`H${Date.now()}${Math.random()}`,previousFailed=previousFailedCourse(item.name,targetTerm),generalEducation=String(item.name||"").includes("分類通識"),note=item.needsReview?"成績狀態無法自動判定，請人工確認":item.external?"成績資料標示外系":generalEducation?"分類通識需人工確認課程與領域":previousFailed?`重修課程：原課程於${terms[previousFailed.term]||previousFailed.term}未通過，請人工認列`:`${terms[targetTerm]}的時序表內找不到此課程`;changes.push({id,before:null});student.courses.push({id,name:item.name,credits:item.credits,term:targetTerm,category:null,status:"unmatched",passed:item.passed,attemptTerm,external:!!item.external,needsReview:!!item.needsReview,transcriptBatchId:batchId,...(previousFailed?{retakeOf:previousFailed.id}:{}),note});
   }
  }
  return changes;
