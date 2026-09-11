@@ -121,7 +121,7 @@ function applyTranscript(data,targetTerm,batchId){
     delete student.courses[index].needsReview;
    }
   }else{
-   const id=`H${Date.now()}${Math.random()}`,previousFailed=previousFailedCourse(item.name,targetTerm),generalEducation=String(item.name||"").includes("分類通識"),note=item.needsReview?"成績狀態無法自動判定，請人工確認":item.external?"成績資料標示外系":generalEducation?"分類通識需人工確認課程與領域":previousFailed?`重修課程：原課程於${terms[previousFailed.term]||previousFailed.term}未通過，請人工認列`:`${terms[targetTerm]}的時序表內找不到此課程`;changes.push({id,before:null});student.courses.push({id,name:item.name,credits:item.credits,term:targetTerm,category:null,status:"unmatched",passed:item.passed,attemptTerm,external:!!item.external,needsReview:!!item.needsReview,transcriptBatchId:batchId,...(previousFailed?{retakeOf:previousFailed.id}:{}),note});
+   const id=`H${Date.now()}${Math.random()}`,previousFailed=previousFailedCourse(item.name,targetTerm),generalEducation=String(item.name||"").includes("分類通識"),failed=!item.needsReview&&!item.passed,note=failed?"成績未通過，不列入畢業學分":item.needsReview?"成績狀態無法自動判定，請人工確認":item.external?"成績資料標示外系":generalEducation?"分類通識需人工確認課程與領域":previousFailed?`重修課程：原課程於${terms[previousFailed.term]||previousFailed.term}未通過，請人工認列`:`${terms[targetTerm]}的時序表內找不到此課程`;changes.push({id,before:null});student.courses.push({id,name:item.name,credits:item.credits,term:targetTerm,category:null,status:failed?"failed":"unmatched",passed:item.passed,attemptTerm,external:!!item.external,needsReview:!!item.needsReview,transcriptBatchId:batchId,...(!failed&&previousFailed?{retakeOf:previousFailed.id}:{}),note});
   }
  }
  return changes;
