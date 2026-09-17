@@ -99,5 +99,47 @@
     return nativeFetch(input, init);
   };
 
-  console.log("Credit Checker AI route: Cloud Run + transcript curriculum reference v1.1.0");
+  function setupRecognitionUiSafe() {
+    const dialog = document.getElementById("classifyDialog");
+    const replacement = document.getElementById("replacementCourse");
+    if (!dialog || !replacement) return;
+
+    const closeButton = dialog.querySelector('.dialog-heading button[aria-label="關閉"]');
+    if (closeButton) closeButton.formNoValidate = true;
+
+    const yearMap = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8};
+    const orderFor = text => {
+      const value = String(text || "").trim();
+      const match = value.match(/^([一二三四五六七八])年級([上下])學期/);
+      if (!match) return 999;
+      return yearMap[match[1]] * 10 + (match[2] === "上" ? 1 : 2);
+    };
+
+    const sortReplacementCoursesOnce = () => {
+      const current = replacement.value;
+      const options = [...replacement.options].filter(option => option.value);
+      options.sort((a, b) => orderFor(a.textContent) - orderFor(b.textContent) || String(a.textContent).localeCompare(String(b.textContent), "zh-Hant", { numeric: true }));
+      for (const option of options) replacement.appendChild(option);
+      if ([...replacement.options].some(option => option.value === current)) replacement.value = current;
+    };
+
+    document.addEventListener("click", event => {
+      if (event.target.closest?.(".classify")) {
+        sortReplacementCoursesOnce();
+        return;
+      }
+      if (event.target.closest?.("#saveClassification")) {
+        setTimeout(() => {
+          if (dialog.open) return;
+          const timeline = document.querySelector('#detailTabs [data-tab="timeline"]');
+          if (timeline && !timeline.classList.contains("active")) timeline.click();
+        }, 50);
+      }
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setupRecognitionUiSafe, { once: true });
+  else setupRecognitionUiSafe();
+
+  console.log("Credit Checker AI route: Cloud Run + transcript curriculum reference + safe recognition UI v1.2.1");
 })();
