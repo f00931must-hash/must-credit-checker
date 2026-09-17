@@ -115,29 +115,24 @@
       ["七年級上學期", 71], ["七年級下學期", 72],
       ["八年級上學期", 81], ["八年級下學期", 82]
     ]);
-    let sorting = false;
+
     const sortReplacementCourses = () => {
-      if (sorting || replacement.options.length <= 2) return;
-      sorting = true;
-      try {
-        const options = [...replacement.options];
-        const placeholder = options.find(o => !o.value) || null;
-        const courses = options.filter(o => o.value);
-        const orderFor = text => {
-          const prefix = String(text || "").split("｜")[0].trim();
-          return termOrder.get(prefix) ?? 999;
-        };
-        courses.sort((a, b) => orderFor(a.textContent) - orderFor(b.textContent) || String(a.textContent).localeCompare(String(b.textContent), "zh-Hant", { numeric: true }));
-        const current = replacement.value;
-        replacement.replaceChildren(...(placeholder ? [placeholder] : []), ...courses);
-        if ([...replacement.options].some(o => o.value === current)) replacement.value = current;
-      } finally {
-        sorting = false;
-      }
+      if (replacement.options.length <= 2) return;
+      const options = [...replacement.options];
+      const placeholder = options.find(o => !o.value) || null;
+      const courses = options.filter(o => o.value);
+      const orderFor = text => {
+        const prefix = String(text || "").split("｜")[0].trim();
+        return termOrder.get(prefix) ?? 999;
+      };
+      const current = replacement.value;
+      courses.sort((a, b) => orderFor(a.textContent) - orderFor(b.textContent) || String(a.textContent).localeCompare(String(b.textContent), "zh-Hant", { numeric: true }));
+      replacement.replaceChildren(...(placeholder ? [placeholder] : []), ...courses);
+      if ([...replacement.options].some(o => o.value === current)) replacement.value = current;
     };
 
-    new MutationObserver(sortReplacementCourses).observe(replacement, { childList: true });
-    dialog.addEventListener("toggle", sortReplacementCourses);
+    // app.js 會在點「調整認列」時先建立選單內容；延後一個 task 再排序即可。
+    // 不使用 MutationObserver，避免 replaceChildren 觸發自身造成無限迴圈與頁面當機。
     document.addEventListener("click", event => {
       if (event.target.closest?.(".classify")) setTimeout(sortReplacementCourses, 0);
     }, true);
@@ -169,5 +164,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setupRecognitionUiFixes, { once: true });
   else setupRecognitionUiFixes();
 
-  console.log("Credit Checker AI route: Cloud Run + transcript curriculum reference + recognition UI fixes v1.2.0");
+  console.log("Credit Checker AI route: Cloud Run + transcript curriculum reference + recognition UI fixes v1.2.1");
 })();
