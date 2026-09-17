@@ -99,5 +99,75 @@
     return nativeFetch(input, init);
   };
 
-  console.log("Credit Checker AI route: Cloud Run + transcript curriculum reference v1.1.0");
+  function setupRecognitionUiFixes() {
+    const dialog = document.getElementById("classifyDialog");
+    const form = document.getElementById("classifyForm");
+    const replacement = document.getElementById("replacementCourse");
+    if (!dialog || !form || !replacement) return;
+
+    const termOrder = new Map([
+      ["一年級上學期", 11], ["一年級下學期", 12],
+      ["二年級上學期", 21], ["二年級下學期", 22],
+      ["三年級上學期", 31], ["三年級下學期", 32],
+      ["四年級上學期", 41], ["四年級下學期", 42],
+      ["五年級上學期", 51], ["五年級下學期", 52],
+      ["六年級上學期", 61], ["六年級下學期", 62],
+      ["七年級上學期", 71], ["七年級下學期", 72],
+      ["八年級上學期", 81], ["八年級下學期", 82]
+    ]);
+    let sorting = false;
+    const sortReplacementCourses = () => {
+      if (sorting || replacement.options.length <= 2) return;
+      sorting = true;
+      try {
+        const options = [...replacement.options];
+        const placeholder = options.find(o => !o.value) || null;
+        const courses = options.filter(o => o.value);
+        const orderFor = text => {
+          const prefix = String(text || "").split("｜")[0].trim();
+          return termOrder.get(prefix) ?? 999;
+        };
+        courses.sort((a, b) => orderFor(a.textContent) - orderFor(b.textContent) || String(a.textContent).localeCompare(String(b.textContent), "zh-Hant", { numeric: true }));
+        const current = replacement.value;
+        replacement.replaceChildren(...(placeholder ? [placeholder] : []), ...courses);
+        if ([...replacement.options].some(o => o.value === current)) replacement.value = current;
+      } finally {
+        sorting = false;
+      }
+    };
+
+    new MutationObserver(sortReplacementCourses).observe(replacement, { childList: true });
+    dialog.addEventListener("toggle", sortReplacementCourses);
+    document.addEventListener("click", event => {
+      if (event.target.closest?.(".classify")) setTimeout(sortReplacementCourses, 0);
+    }, true);
+
+    const closeButton = dialog.querySelector('.dialog-heading button[aria-label="關閉"]');
+    if (closeButton) {
+      closeButton.setAttribute("formnovalidate", "");
+      closeButton.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        dialog.close("cancel");
+      }, true);
+    }
+
+    let savedRecognition = false;
+    form.addEventListener("submit", event => {
+      if (event.submitter?.id === "saveClassification") savedRecognition = true;
+    }, true);
+    dialog.addEventListener("close", () => {
+      if (!savedRecognition) return;
+      savedRecognition = false;
+      setTimeout(() => {
+        const timeline = document.querySelector('#detailTabs [data-tab="timeline"]');
+        if (timeline) timeline.click();
+      }, 0);
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setupRecognitionUiFixes, { once: true });
+  else setupRecognitionUiFixes();
+
+  console.log("Credit Checker AI route: Cloud Run + transcript curriculum reference + recognition UI fixes v1.2.0");
 })();
