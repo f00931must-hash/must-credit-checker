@@ -1,5 +1,5 @@
 import {installCurriculumReview} from "./curriculum-review.js?v=2.0.3";
-import {cleanCourseName,inspectCourses} from "./curriculum-quality.js?v=2.0.4";
+import {cleanCourseName,inspectCourses} from "./curriculum-quality.js?v=2.0.5";
 import {sourceStore,sourceLoad} from "./source-reference.js?v=2.0.0";
 import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
