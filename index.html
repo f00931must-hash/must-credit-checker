@@ -11,7 +11,7 @@
   <header class="topbar">
     <div>
       <p class="eyebrow">明新科技大學｜資源教室</p>
-      <h1>學分檢核系統</h1>
+      <h1>學分檢核系統</h1><a href="legacy.html">返回改版前版本</a>
     </div>
     <div class="header-actions"><span class="demo-badge" id="systemBadge">Firebase測試版</span><button class="logout-button hidden" id="logoutBtn">登出</button></div>
   </header>
@@ -201,8 +201,8 @@
           <label>專業必修<input id="majorRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
           <label>專業選修<input id="majorElectiveInput" type="number" placeholder="請輸入" min="0" required></label>
         </div>
-        <label>上傳時序表PDF<input id="curriculumPdfInput" type="file" accept="application/pdf" required></label>
-        <p class="hint-left">PDF只在本機選取，不會上傳保存；系統只將確認後的課程資料存入Firestore。</p>
+        <button type="button" id="officialFind">尋找官方課程規劃表</button><div id="officialResults" role="status"></div><label>上傳時序表PDF<input id="curriculumPdfInput" type="file" accept="application/pdf" required></label>
+        <p class="hint-left">原始PDF保留於此瀏覽器供核對；AI辨識時會傳送選取頁面至既有AI服務。換電腦或清除瀏覽器資料後須重新選檔。</p>
         <p class="form-error" id="curriculumError"></p>
         <button class="primary" id="saveCurriculumBtn" value="default">選取PDF並建立待辨識版本</button>
       </div>
@@ -256,9 +256,11 @@
     </form>
   </dialog>
 
+  <dialog id="sourceCompareDialog" style="width:95vw;max-width:1400px"><div class="dialog-heading"><h3>原始課程規劃表（唯讀）</h3><button type="button" id="sourceCompareClose">關閉</button></div><p>舊版本第一次使用請選取原PDF；不會變更資料庫中的課程或學生紀錄。</p><a target="_blank" rel="noopener">另開原表視窗並排核對</a><iframe title="原始課程規劃表" style="width:100%;height:70vh;border:0"></iframe></dialog>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="credit-ai-cloudrun-route.js?v=1.0.0"></script>
-  <script type="module" src="app.js?v=1.5.6"></script>
+  <script type="module" src="curriculum-upgrade-app.js?v=2.0.0"></script>
 </body>
 </html>
+
