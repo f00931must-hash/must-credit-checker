@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="明新科技大學資源教室學分檢核系統">
+  <title>學分檢核系統｜明新科技大學資源教室</title>
+  <link rel="stylesheet" href="styles.css?v=1.5.6">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">明新科技大學｜資源教室</p>
+      <h1>學分檢核系統</h1>
+    </div>
+    <div class="header-actions"><span class="demo-badge" id="systemBadge">Firebase測試版</span><button class="logout-button hidden" id="logoutBtn">登出</button></div>
+  </header>
+
+  <main class="page-shell">
+    <section id="homeView" class="view">
+      <div class="hero card">
+        <div>
+          <h2>學生學分檢核與修課管理</h2>
+        </div>
+        <div class="role-grid teacher-entry-grid">
+          <button class="role-card" id="teacherEntry">
+            <span class="role-icon">師</span>
+            <strong>老師／小幫手</strong>
+            <small>進入管理與檢核</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="teacherView" class="view hidden">
+      <button class="back-button" data-back="homeView">← 返回首頁</button>
+      <div class="section-heading">
+        <div><p class="eyebrow">老師／小幫手後台</p><h2>我的學生</h2></div>
+        <div class="button-group"><button id="curriculumBtn">時序表管理</button><button class="primary" id="addStudentBtn">＋ 新增學生</button></div>
+      </div>
+      <div class="notice" id="teacherNotice">登入後只會載入目前帳號負責的學生。</div>
+      <div class="student-tools card">
+        <label class="student-search">搜尋
+          <input id="studentSearchInput" type="search" placeholder="輸入姓名或學號">
+        </label>
+        <label>科系
+          <select id="studentDepartmentFilter"><option value="all">全部科系</option></select>
+        </label>
+        <label>入學學年度
+          <select id="studentYearFilter"><option value="all">全部學年度</option></select>
+        </label>
+        <label>學生狀態
+          <select id="studentStateFilter">
+            <option value="active">目前學生</option>
+            <option value="holding">學分暫存區</option>
+            <option value="all">全部</option>
+          </select>
+        </label>
+        <label>排序
+          <select id="studentSortSelect">
+            <option value="created-desc">新增時間（新到舊）</option>
+            <option value="created-asc">新增時間（舊到新）</option>
+            <option value="name-asc">姓名</option>
+            <option value="id-asc">學號</option>
+            <option value="year-desc">入學學年度（新到舊）</option>
+            <option value="year-asc">入學學年度（舊到新）</option>
+          </select>
+        </label>
+        <div class="batch-actions">
+          <label class="check-label"><input type="checkbox" id="selectVisibleStudents"> 全選篩選結果</label>
+          <button type="button" id="batchExportBtn" disabled>批次下載 Excel（0）</button>
+        </div>
+      </div>
+      <div class="student-list" id="studentList"></div>
+    </section>
+
+    <section id="detailView" class="view hidden">
+      <div class="detail-actions"><button class="back-button" id="detailBack">← 返回</button><button class="primary teacher-only" id="importTranscriptBtn">貼上歷史成績截圖</button></div>
+      <div id="studentHeader" class="student-header card"></div>
+      <div id="transcriptUndoNotice" class="undo-notice hidden"></div>
+      <div id="creditSummary" class="credit-grid"></div>
+      <div id="generalEducationSummary"></div>
+      <div id="externalSummary"></div>
+
+      <div class="toolbar card">
+        <div class="tabs" id="detailTabs">
+          <button class="tab active" data-tab="timeline">依年級查看</button>
+          <button class="tab" data-tab="missing">只看尚未完成</button>
+          <button class="tab teacher-only" data-tab="unmatched">待人工分類</button>
+        </div>
+        <label class="select-label">年級／學期
+          <select id="termFilter">
+            <option value="all">全部</option>
+            <option value="1-1">一年級上學期</option><option value="1-2">一年級下學期</option>
+            <option value="2-1">二年級上學期</option><option value="2-2">二年級下學期</option>
+            <option value="3-1">三年級上學期</option><option value="3-2">三年級下學期</option>
+            <option value="4-1">四年級上學期</option><option value="4-2">四年級下學期</option>
+            <option value="5-1">五年級上學期</option><option value="5-2">五年級下學期</option>
+            <option value="6-1">六年級上學期</option><option value="6-2">六年級下學期</option>
+            <option value="7-1">七年級上學期</option><option value="7-2">七年級下學期</option>
+            <option value="8-1">八年級上學期</option><option value="8-2">八年級下學期</option>
+          </select>
+        </label>
+      </div>
+      <div id="courseContent"></div>
+      <p class="disclaimer">本系統提供修課規劃與初步檢核，實際畢業資格仍以教務處正式審核結果為準。</p>
+    </section>
+  </main>
+
+  <dialog id="classifyDialog">
+    <form method="dialog" id="classifyForm">
+      <div class="dialog-heading"><h3>人工認列課程</h3><button value="cancel" aria-label="關閉">×</button></div>
+      <p id="classifyCourseName"></p>
+      <label>認列方式
+        <select id="classificationType">
+          <option value="category">只認列學分類別</option>
+          <option value="replacement">替代時序表內特定課程</option>
+          <option value="reset">取消認列／改回尚未修習</option>
+          <option value="excluded">不列入畢業學分</option>
+        </select>
+      </label>
+      <label id="replacementCourseLabel" class="hidden">要替代的時序表課程
+        <select id="replacementCourse"></select>
+        <small class="hint-left">儲存後會直接合併到選定的時序表欄位，不會另外增加一列。</small>
+      </label>
+      <label>學分類別
+        <select id="classificationCategory">
+          <option>校必修</option><option>院必修</option><option>專業必修</option><option>專業選修</option>
+        </select>
+      </label>
+      <label>認列學分
+        <input id="classificationCredits" type="number" min="0" max="9" step="0.5" required>
+        <small class="hint-left">可填0至9學分，以0.5學分為級距。</small>
+      </label>
+      <label id="classificationDomainLabel">分類通識領域
+        <select id="classificationDomain">
+          <option value="">不是分類通識</option>
+          <option>人文領域</option><option>藝術領域</option><option>社會領域</option><option>自然領域</option>
+        </select>
+        <small class="hint-left">若認列為分類通識，請指定領域；學分會併入校必修。</small>
+      </label>
+      <label>歸屬年級／學期
+        <select id="classificationTerm"></select>
+        <small class="hint-left">延畢課程可手動放入大五至大八。</small>
+      </label>
+      <label class="check-label"><input type="checkbox" id="classificationExternal"> 此課程為外系課程（最多認列12學分）</label>
+      <label>備註<textarea id="classificationNote" placeholder="例如：系上確認可認列為專業選修"></textarea></label>
+      <menu><button value="cancel" formnovalidate>取消</button><button class="primary" value="default" id="saveClassification">儲存認列</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="studentDialog">
+    <form method="dialog" id="studentForm">
+      <div class="dialog-heading"><h3 id="studentDialogTitle">新增學生</h3><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <label>姓名<input id="studentNameInput" required></label>
+      <label>學號<input id="studentIdInput" required></label>
+      <label>入學年度<input id="admissionYearInput" required placeholder="例如：115"></label>
+      <label>科系<input id="departmentInput" required></label>
+      <label>學制<input id="programInput" value="日間部四技"></label>
+      <label>適用時序表<select id="curriculumSelect" required><option value="">請先選擇時序表</option></select></label>
+      <p class="form-error" id="studentFormError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button class="primary" id="saveStudentBtn" value="default">新增學生</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="transferStudentDialog">
+    <form method="dialog" id="transferStudentForm">
+      <div class="dialog-heading"><h3>轉移學生／學分暫存</h3><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <p id="transferStudentName" class="dialog-student-name"></p>
+      <label>處理方式
+        <select id="transferMode">
+          <option value="teacher">轉給其他個管老師</option>
+          <option value="holding">放入學分暫存區</option>
+        </select>
+      </label>
+      <label id="transferTeacherLabel">接收老師
+        <select id="transferTeacherSelect"><option value="">正在載入老師名單…</option></select>
+        <small class="hint-left">正式轉移後，原老師將無法再查看這位學生。</small>
+      </label>
+      <label>轉移／暫存原因
+        <textarea id="transferReason" required placeholder="例如：學生轉入其他科系，由新個管老師接手"></textarea>
+      </label>
+      <p class="form-error" id="transferStudentError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button type="button" class="primary" id="confirmStudentTransfer">確認</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="curriculumDialog" class="wide-dialog">
+    <form method="dialog" id="curriculumForm">
+      <div class="dialog-heading"><div><h3>時序表管理</h3><p class="hint-left">每個入學年度、科系及學制只需建立一次。</p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <div id="curriculumList" class="curriculum-list"></div>
+      <div class="curriculum-create">
+        <h4>建立時序表版本</h4>
+        <div class="form-grid">
+          <label>入學年度<input id="curriculumYear" placeholder="例如：115" required></label>
+          <label>科系<input id="curriculumDepartment" placeholder="請輸入科系全名" required></label>
+          <label>學制<input id="curriculumProgram" placeholder="例如：日間部四技" required></label>
+          <label>畢業總學分<input id="totalCreditsInput" type="number" placeholder="請輸入" min="1" required></label>
+          <label>校必修<input id="schoolRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
+          <label>院必修<input id="collegeRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
+          <label>專業必修<input id="majorRequiredInput" type="number" placeholder="請輸入" min="0" required></label>
+          <label>專業選修<input id="majorElectiveInput" type="number" placeholder="請輸入" min="0" required></label>
+        </div>
+        <label>上傳時序表PDF<input id="curriculumPdfInput" type="file" accept="application/pdf" required></label>
+        <p class="hint-left">PDF只在本機選取，不會上傳保存；系統只將確認後的課程資料存入Firestore。</p>
+        <p class="form-error" id="curriculumError"></p>
+        <button class="primary" id="saveCurriculumBtn" value="default">選取PDF並建立待辨識版本</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="curriculumCreditsDialog">
+    <form method="dialog" id="curriculumCreditsForm">
+      <div class="dialog-heading"><div><h3>修改學分設定</h3><p class="hint-left" id="curriculumCreditsTitle"></p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <div class="credit-setting-summary" id="curriculumCreditsUsage"></div>
+      <label>畢業總學分<input id="editTotalCredits" type="number" min="1" required></label>
+      <label>校必修<input id="editSchoolRequired" type="number" min="0" required></label>
+      <label>院必修<input id="editCollegeRequired" type="number" min="0" required></label>
+      <label>專業必修<input id="editMajorRequired" type="number" min="0" required></label>
+      <label>專業選修<input id="editMajorElective" type="number" min="0" required></label>
+      <p class="hint-left">修改後會更新此時序表的學分門檻，不會改動學生的修課狀態或人工認列紀錄。</p>
+      <p class="form-error" id="curriculumCreditsError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button type="button" class="primary" id="saveCurriculumCredits">儲存學分設定</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="courseEditorDialog" class="wide-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div><h3>課程辨識與確認</h3><p class="hint-left" id="courseEditorTitle"></p></div><button value="cancel" aria-label="關閉">×</button></div>
+      <div class="notice">也可直接用下列格式修改課程；每行一門：學期｜類別｜課名｜學分。學期可填1-1至8-2。</div>
+      <section id="curriculumPageSelection" class="page-selection hidden">
+        <div><strong>選擇要辨識的 PDF 頁面</strong><p class="hint-left">系統會預選可能包含中文課程表的頁面，請確認後再辨識。</p></div>
+        <div id="curriculumPageGrid" class="page-preview-grid"></div>
+      </section>
+      <label>課程資料<textarea id="courseImportText" class="course-import" placeholder="1-1｜校必修｜分類通識-課名(領域)｜2&#10;1-1｜專業必修｜旅館事業概論｜2"></textarea></label>
+      <p class="hint-left">類別限：校必修、院必修、專業必修、專業選修。</p>
+      <p class="form-error" id="courseEditorError"></p>
+      <menu><button value="cancel" formnovalidate>稍後處理</button><button type="button" id="aiParseBtn">AI自動辨識</button><button class="primary" id="confirmCoursesBtn" value="default">確認課程並啟用</button></menu>
+    </form>
+  </dialog>
+
+  <dialog id="transcriptPasteDialog" class="wide-dialog">
+    <form method="dialog">
+      <div class="dialog-heading"><div><h3>貼上歷史成績截圖</h3><p class="hint-left">截圖後直接按 Ctrl＋V，不需要另存圖片。</p></div><button value="cancel" formnovalidate aria-label="關閉">×</button></div>
+      <label>這張成績屬於哪個年級／學期？
+        <select id="transcriptTargetTerm" required></select>
+        <small class="hint-left">系統只會比對這個學期的時序表課程，避免英文、體育貼到其他學期。</small>
+      </label>
+      <div id="transcriptPasteZone" class="paste-zone" tabindex="0">
+        <strong>請在這裡貼上成績截圖</strong>
+        <span>先點一下此區域，再按 Ctrl＋V</span>
+        <img id="transcriptPreview" class="hidden" alt="歷史成績截圖預覽">
+      </div>
+      <p class="form-error" id="transcriptPasteError"></p>
+      <menu><button value="cancel" formnovalidate>取消</button><button type="button" id="clearTranscriptImageBtn" disabled>清除重貼</button><button type="button" class="primary" id="analyzeTranscriptBtn" disabled>AI辨識成績</button></menu>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="credit-ai-cloudrun-route.js?v=1.0.0"></script>
+  <script type="module" src="legacy-app.js?v=1.5.6"></script>
+</body>
+</html>
