@@ -34,6 +34,7 @@ logoutBtn.onclick=async()=>{await signOut(auth);show("homeView")};
 
 async function loginAndOpenTeacher(){
  try{
+  await auth.authStateReady();
   const user=auth.currentUser||(await signInWithPopup(auth,provider)).user;
   const accessSnap=await getDoc(doc(db,"authorizedUsers",normalizedEmail(user.email)));
   if(!accessSnap.exists()||accessSnap.data().enabled===false){await signOut(auth);alert("此帳號尚未被加入老師／小幫手權限名單。");return}
